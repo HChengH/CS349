@@ -1,0 +1,7 @@
+Java: OpenJDK Runtime Environment
+Java Version: 1.8.0_151
+OS Name: Linux
+OS Version: 4.4.0-104-generic
+OS Architecture: amd64
+Total Memory (MB): 31
+Max Memory (MB): 446
