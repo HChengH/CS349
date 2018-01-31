@@ -14,13 +14,24 @@
 
 using namespace std;
 
+/***
+ * Add second player, now 2 fogs must both in the target regin to go to next level
+ * Different Color for 2 frogs, red and blue.
+ *		red uses w,a,s,d to control and blue uses direction keys.
+ * 
+***/
+
 enum Direction{upDir, downDir, leftDir, rightDir};
 
 const int Border = 5;
 const int BufferSize = 10;
 int fps = 30;
 
-Pixmap buffer;
+XColor xred;
+XColor xblue;
+XColor dummy;
+
+Colormap cmp;
 
 struct XInfo {
     Display*  display;
@@ -38,13 +49,12 @@ class Frog : public Displayable{
 public:
 	virtual void paint(XInfo &xinfo){
 		int screenNum = DefaultScreen(xinfo.display);
-		XSetForeground(xinfo.display, xinfo.gc, BlackPixel(xinfo.display, 
-			 										 screenNum));
+		XSetForeground(xinfo.display, xinfo.gc, this->muti_play == 1?xred.pixel:xblue.pixel);
 		XFillRectangle(xinfo.display, xinfo.window, xinfo.gc, 
 			           this->x, this->y, 50, 50);
 	}
 
-	Frog(int xCord, int yCord):x(xCord), y(yCord){
+	Frog(int xCord, int yCord, int Fmuti_play):x(xCord), y(yCord), muti_play(Fmuti_play){
 		this->width = 50;
 		this->height = 50;
 	}
@@ -52,7 +62,7 @@ public:
 	virtual void reset(XInfo &xinfo){
 		XWindowAttributes wa;
 		XGetWindowAttributes(xinfo.display, xinfo.window, &wa);
-		this->x = (wa.width/2) -(this->width/2);
+		this->x = this->muti_play == 1 ? (wa.width/4) -(this->width/2):(wa.width/4)*3 -(this->width/2);
 		this->y = wa.height - this->height;
 	}
 
@@ -115,6 +125,7 @@ private:
 	int y;
 	int width;
 	int height;
+	int muti_play;
 };
 
 class Obstacle : public Displayable{
@@ -185,8 +196,9 @@ public:
 		stream << "Level: ";
 		stream << this->level;
 		level_str = stream.str();
+		int screenNum = DefaultScreen(xinfo.display);
 
-
+		XSetForeground(xinfo.display, xinfo.gc, BlackPixel(xinfo.display, screenNum));
 		XDrawImageString( xinfo.display, xinfo.window, xinfo.gc,
                           this->x, this->y, level_str.c_str(), level_str.length() );
 
@@ -246,15 +258,22 @@ bool repaint(list<Displayable*> dList, XInfo& xinfo) {
 	//XFillRectangle(display, pixmap, gc, 0, 0, w.width, w.height);
     XClearWindow( xinfo.display, xinfo.window );
     Frog *frog = ((Frog *)*begin);
+    ++begin;
+    Frog *frog2 =((Frog *)*begin);
+
     int section = frog->getyCor() / frog->getHeight();
+    int section2 = frog2->getyCor()/ frog2->getHeight();
+
+    begin = dList.begin();
 
     while ( begin != end ) {
         Displayable* d = *begin;
-        if(counter >2){
+        if(counter >3){
         	Obstacle *o = ((Obstacle *)d);
         	o->move(xinfo);
         	// performe a collision test...
-        	if(o->getRow() == section && collision(frog, o)){
+        	if((o->getRow() == section && collision(frog, o)) || 
+        	   (o->getRow() == section2 && collision(frog2, o))){
         		return false;
         	}
         }
@@ -283,6 +302,8 @@ void eventloop(XInfo& xinfo, list<Displayable*> dList) {
     char text[BufferSize];
     list<Displayable*>::const_iterator begin = dList.begin();
     Frog *frog = (Frog *)*begin;
+    ++begin;
+    Frog *frog2 = (Frog *)*begin;
     unsigned long lastRepaint = 0;
 
     while (true) {
@@ -301,29 +322,29 @@ void eventloop(XInfo& xinfo, list<Displayable*> dList) {
 
 	            	switch(key){
 	                	case XK_Up:
-	                    	frog->move(upDir, xinfo);
+	                    	frog2->move(upDir, xinfo);
 	                    	break;
 	                	case XK_Down:
-	                    	frog->move(downDir, xinfo);
+	                    	frog2->move(downDir, xinfo);
 	                    	break;
 	                	case XK_Left:
-	                    	frog->move(leftDir, xinfo);
+	                    	frog2->move(leftDir, xinfo);
 	                    	break;
 	                	case XK_Right:
-	                    	frog->move(rightDir, xinfo);
+	                    	frog2->move(rightDir, xinfo);
 	                    	break;
 	                	case XK_n:
-	                		if(frog->inPosition()){
+	                		if(frog->inPosition() && frog2->inPosition()){
 	                			int counter = 1;
 	            				begin = dList.begin();
 	            				list<Displayable*>::const_iterator end = dList.end();
 	            				while(begin != end){
 	            					Displayable *d = *begin;
-	            					if(counter == 2){
+	            					if(counter == 3){
 	            						((Level *)d)->nextLevel();
 	            					}
 	            					else{
-	            						if(counter >2){
+	            						if(counter >3){
 	            							((Obstacle *)d)->speedUp();
 	            						}
 	            						else{
@@ -335,6 +356,18 @@ void eventloop(XInfo& xinfo, list<Displayable*> dList) {
 	            				}
 	            				repaint(dList, xinfo);
 	                		}
+	                		break;
+	                	case XK_w:
+	                		frog->move(upDir, xinfo);
+	                		break;
+	                	case XK_s:
+	                		frog->move(downDir, xinfo);
+	                		break;
+	                	case XK_a:
+	                		frog->move(leftDir, xinfo);
+	                		break;
+	                	case XK_d:
+	                		frog->move(rightDir, xinfo);
 	                		break;
 	                	}
 	            	break;
@@ -423,14 +456,23 @@ list<Displayable *> createObstacal(XInfo &xinfo){
   	XSetFont (xinfo.display, xinfo.gc, font->fid);
 
     // draw frog
-    Frog *newfrog = new Frog(hints.width/2 - 25, hints.height - 50);
+    Frog *newfrog = new Frog(hints.width/4 - 25, hints.height - 50, 1);
+    Frog *newfrog2 = new Frog((hints.width/4)*3 - 25, hints.height - 50, 2);
+
     Level *newLevel = new Level(700,30);
 
     dList.push_back(newfrog);
+    dList.push_back(newfrog2);
     dList.push_back(newLevel);
 
     list<Displayable *>temp = createObstacal(xinfo);
     dList.splice(dList.end(), temp);
+
+
+    XAllocNamedColor(xinfo.display, DefaultColormap(xinfo.display, DefaultScreen(xinfo.display)),"Crimson",
+                      &xred,&dummy);
+    XAllocNamedColor(xinfo.display, DefaultColormap(xinfo.display, DefaultScreen(xinfo.display)),"Dark Blue",
+                      &xblue,&dummy);
 
     //int depth = DefaultDepth(xinfo.display, DefaultScreen(xinfo.display));
 	//buffer = XCreatePixmap(xinfo.display, xinfo.window, hints.width, hints.height, depth);
