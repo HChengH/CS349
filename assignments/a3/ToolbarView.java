@@ -46,6 +46,7 @@ public class ToolbarView extends JToolBar implements Observer {
                     Point shiftEnd = new Point(end.x+10, end.y+10);
                     ShapeModel duplicate = new ShapeModel.ShapeFactory().getShape(selected.getType(), shiftStart, shiftEnd);
                     duplicate.setType(selected.getType());
+                    // copy the S,R,T matrix in to new shape...
                     duplicate.copyR(selected.getR());
                     duplicate.copyS(selected.getS());
                     duplicate.copyT(selected.getT());

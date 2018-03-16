@@ -2,7 +2,6 @@ import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
@@ -31,6 +30,7 @@ public class DrawingModel extends Observable {
     }
 
     public void addShape(ShapeModel shape) {
+        // create undoable
         shapeUndoable = new shapeUndoable(shape);
         undoManger.addEdit(shapeUndoable);
         shape.setUndoManager(undoManger);
@@ -96,32 +96,12 @@ public class DrawingModel extends Observable {
         }
     }
 
-    public void hitTest(MouseEvent e){
-        this.setSelecting(null);
-        Point2D clickP = new Point2D.Double(e.getX(), e.getY());
-        ShapeModel temp;
-        for(int i = shapes.size()-1; i>= 0; --i){
-            temp = shapes.get(i);
-            if(temp.hitTest(clickP)){
-                this.setSelecting(temp);
-                break;
-            }
-        }
-        this.setChanged();
-        this.notifyObservers();
-    }
-
     public boolean canUndo(){
         return this.undoManger.canUndo();
     }
 
     public boolean canRedo(){
         return this.undoManger.canRedo();
-    }
-
-    public void forceNotify(){
-        this.setChanged();
-        this.notifyObservers();
     }
 
     public class shapeUndoable extends AbstractUndoableEdit {

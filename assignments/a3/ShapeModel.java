@@ -6,7 +6,7 @@ import java.lang.reflect.Constructor;
 public class ShapeModel {
     Shape shape;
     transformUndoable undoAble;
-    private UndoManager undoManager = new UndoManager();
+    private UndoManager undoManager;
     private AffineTransform trans = new AffineTransform();
     private AffineTransform t = AffineTransform.getTranslateInstance(0,0);
     private AffineTransform r = AffineTransform.getRotateInstance(0);
@@ -51,6 +51,7 @@ public class ShapeModel {
         this.undoManager = u;
     }
 
+    // update the size of the button to avoid effect caused by tranfrom g2
     public void setUpButtons(){
         double maxX = this.shape.getBounds2D().getMaxX();
         double maxY = this.shape.getBounds2D().getMaxY();
@@ -75,6 +76,7 @@ public class ShapeModel {
         return resizeBut;
     }
 
+    // inverse any point to the current shape coordinate system
     public Point2D inversePoint(double x, double y){
         Point2D origin = new Point2D.Double(x,y);
         Point2D transfer = origin;
@@ -94,6 +96,8 @@ public class ShapeModel {
         }catch(NoninvertibleTransformException e){
             // ...
         }
+
+        // create the inverse matrix in inverse order
         inverse.concatenate(invToOrigin);
         inverse.concatenate(invS);
         inverse.concatenate(invR);
@@ -152,6 +156,7 @@ public class ShapeModel {
         double width = shape.getBounds2D().getWidth();
         double height = shape.getBounds2D().getHeight();
 
+        // translate the point in to current shape coordinate
         Point2D inv = inversePoint(x,y);
 
         double deltaX = inv.getX() - shape.getBounds2D().getMaxX();
@@ -164,6 +169,7 @@ public class ShapeModel {
         double xcum = t.getTranslateX();
         double ycum = t.getTranslateY();
 
+        // arctan function to calculate angle of rotate
         double ang = Math.atan2(((shape.getBounds2D().getCenterY())+ycum - y) ,
                 ((shape.getBounds2D().getCenterX())+xcum - x)) - Math.PI/2;
         this.r = AffineTransform.getRotateInstance(ang);
@@ -176,6 +182,7 @@ public class ShapeModel {
                                                              -shape.getBounds2D().getCenterY());
         this.toCenter = AffineTransform.getTranslateInstance(shape.getBounds2D().getCenterX(),
                                                              shape.getBounds2D().getCenterY());
+        // apply the AffineTransform in proper order
         g2.transform(this.toCenter);
         g2.transform(this.t);
         g2.transform(this.r);
@@ -222,17 +229,20 @@ public class ShapeModel {
         this.t = new AffineTransform(transform);
     }
 
+    // create a transformUndoable and add in to undoManager
     public void addUndoStack(AffineTransform prevT, AffineTransform prevS, AffineTransform prevR, DrawingModel m){
         undoAble = new transformUndoable(prevT, prevS, prevR, t, s,r, m);
         this.undoManager.addEdit(undoAble);
     }
 
+    // replace S,R,T matrix when Redo/Undo
     public void undoRedoReplaceTrMatrix(AffineTransform t, AffineTransform s, AffineTransform r){
         this.t = t;
         this.r = r;
         this.s = s;
     }
 
+    // handle changing selecting focus when perform any redo, undo
     public void setFocus(DrawingModel m){
         m.setSelecting(this);
     }
@@ -245,7 +255,6 @@ public class ShapeModel {
         AffineTransform s;
         AffineTransform r;
         DrawingModel m;
-
 
         public transformUndoable(AffineTransform pT, AffineTransform pS, AffineTransform pR,
                                  AffineTransform t, AffineTransform s, AffineTransform r, DrawingModel m){
