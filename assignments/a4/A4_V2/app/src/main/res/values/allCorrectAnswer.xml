@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="q1ca">
+        <item>A</item>
+    </string-array>
+
+    <string-array name="q2ca">
+        <item>A</item>
+        <item>C</item>
+    </string-array>>
+
+    <string-array name="q3ca">
+        <item>C</item>
+    </string-array>
+
+    <string-array name="q4ca">
+        <item>D</item>
+    </string-array>
+
+    <string-array name="q5ca">
+        <item>C</item>
+        <item>D</item>
+    </string-array>
+
+    <array name="correctAnswers">
+        <item>@array/q1ca</item>
+        <item>@array/q2ca</item>
+        <item>@array/q3ca</item>
+        <item>@array/q4ca</item>
+        <item>@array/q5ca</item>
+    </array>
+</resources>

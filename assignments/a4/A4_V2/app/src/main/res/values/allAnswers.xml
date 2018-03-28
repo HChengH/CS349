@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="q1Ans">
+        <item>Canada</item>
+        <item>Taiwan</item>
+        <item>China</item>
+        <item>Peru</item>
+    </string-array>
+
+    <string-array name="q2Ans">
+        <item>Brazil</item>
+        <item>Ivory Coast</item>
+        <item>Argentina</item>
+        <item>Luxembourg</item>
+    </string-array>
+
+    <string-array name="q3Ans">
+        <item>Netherlands</item>
+        <item>Taiwan</item>
+        <item>China</item>
+        <item>Slovakia</item>
+    </string-array>
+
+    <string-array name="q4Ans">
+        <item>Canada</item>
+        <item>India</item>
+        <item>Brazil</item>
+        <item>South Korea</item>
+    </string-array>
+
+    <string-array name="q5Ans">
+        <item>Canada</item>
+        <item>Taiwan</item>
+        <item>South Africa</item>
+        <item>United Kingdom</item>
+    </string-array>
+
+    <array name="allAnswers">
+        <item>@array/q1Ans</item>
+        <item>@array/q2Ans</item>
+        <item>@array/q3Ans</item>
+        <item>@array/q4Ans</item>
+        <item>@array/q5Ans</item>
+    </array>
+</resources>
